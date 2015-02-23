@@ -6,6 +6,7 @@ import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -116,36 +117,54 @@ private void pintaDisparos( Graphics2D g2){
             //pinto los disparos
         for (int i=0; i<listaDisparos.size(); i++){
             disparoAux = listaDisparos.get(i);
-            disparoAux.setY( disparoAux.getY() - 1);
+            disparoAux.setY( disparoAux.getY() - 3);
             if (disparoAux.getY() < 0){
               listaDisparos.remove(i);
             }
             g2.drawImage(disparoAux.imagenDisparo, disparoAux.getX(), disparoAux.getY(), null);
         }
 }
+ 
+private void chequeaColision(){
+        //creo un marco para guardar el borde de la imagen del marciano
+    Rectangle2D.Double rectanguloMarciano = new Rectangle2D.Double();
+        //creo un marco para guardar el borde de la imagen del disparo
+    Rectangle2D.Double rectanguloDisparo = new Rectangle2D.Double(); 
+        //ahora leo la lista de disparos 
+    for (int j=0; j<listaDisparos.size(); j++){
+        Disparo d = listaDisparos.get(j);
+        //asigno al rectángulo las dimensiones del disparo y su posicion
+        rectanguloDisparo.setFrame(d.getX(), d.getY(), d.imagenDisparo.getWidth(null), d.imagenDisparo.getHeight(null));
+        
+        //leo la lista de marcianos y comparo uno a uno con el disparo
+        for (int i=0; i< listaMarcianos.size(); i++){
+            Marciano m = listaMarcianos.get(i);
+            rectanguloMarciano.setFrame(m.getX(), m.getY(), m.ancho, m.ancho);
+            if (rectanguloDisparo.intersects(rectanguloMarciano)){
+                listaMarcianos.remove(i);
+                listaDisparos.remove(j);
+            }
+        }
+    }
     
+}
+
 private void bucleDelJuego() {
-    
         //primero apunto al buffer
         Graphics2D g2 = (Graphics2D) buffer.getGraphics();
- 
         //pinto un rectángulo negro del tamaño de la ventana
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, anchoPantalla, altoPantalla);
         /////////////////////////////////////////////////////
         //////    codigo del juego    ///////////////////////
-        
         pintaMarcianos(g2);
         pintaNave(g2);
         pintaDisparos(g2);
-        
-
-        
+        chequeaColision();
         /////////////////////////////////////////////////////
         //apunto al jPanel y dibujo el buffer sobre el jPanel
         g2 = (Graphics2D) jPanel1.getGraphics();
         g2.drawImage(buffer, 0, 0, null);
-
     }
 
     /**
