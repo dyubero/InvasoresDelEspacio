@@ -9,6 +9,8 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 /**
  *
@@ -18,16 +20,17 @@ public class VentanaJuego extends javax.swing.JFrame {
         //alto y ancho de la ventana
     int anchoPantalla = 600;
     int altoPantalla = 450;
+    
 
     //buffer para dibujar
     BufferedImage buffer = null;
-
+    
     //declaro un objeto de tipo nave
     Nave miNave = new Nave(anchoPantalla);
     //declaro dos variables booleanas que controlen el movimiento de la nave
     boolean pulsadaDerecha = false;
     boolean pulsadaIzquierda = false;
-   
+   boolean gameOver;
     ArrayList <Disparo> listaDisparos = new ArrayList();
     Disparo disparoAux ;
     
@@ -36,8 +39,12 @@ public class VentanaJuego extends javax.swing.JFrame {
     
     
      ArrayList <Explosion> listaExplosiones = new ArrayList();
-    
+    //variables para cargar los sonidos
+     Clip sonidoDisparo;
+     Clip sonidoExplosion;
+     
      int contadorTiempo = 0;
+     
     Timer temporizador = new Timer(10, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -61,6 +68,11 @@ public class VentanaJuego extends javax.swing.JFrame {
         //inicio el juego
         temporizador.start();
         
+        
+       
+        
+        
+        
         //posiciona la nave abajo del todo
         miNave.setX(anchoPantalla /2);
         miNave.setY(altoPantalla - miNave.imagenNave.getHeight(null));
@@ -73,7 +85,8 @@ public class VentanaJuego extends javax.swing.JFrame {
                 m.setY(m.ancho * j);
                 listaMarcianos.add(m);
             }
-        }    
+        } 
+        
     }
 private void pintaMarcianos(Graphics2D miGrafico ){
 
@@ -85,6 +98,9 @@ private void pintaMarcianos(Graphics2D miGrafico ){
         
         for (int i=0; i<listaMarcianos.size(); i++){
             Marciano m = listaMarcianos.get(i);
+            if(m.getY()>altoPantalla-50){
+                gameOver=true;
+                }
             m.setX(m.getX() + velocidadMarciano);
             //si choca en la pared derecha
             if ( (m.getX() + m.ancho) > anchoPantalla ){
@@ -94,6 +110,7 @@ private void pintaMarcianos(Graphics2D miGrafico ){
             if (m.getX() <= 0){
                 cambia = true;
             }
+            
             //dibujo la imagen correspondiente de los amrcianos
             if(contadorTiempo<75){
             miGrafico.drawImage(m.imagen1, m.getX(), m.getY(),null);
@@ -108,6 +125,7 @@ private void pintaMarcianos(Graphics2D miGrafico ){
             for (int i=0; i<listaMarcianos.size(); i++){
                 Marciano m = listaMarcianos.get(i);
                 m.setY(m.getY() + m.ancho/2);
+                
             }
         }
 }
@@ -117,6 +135,7 @@ private void pintaExplosion(Graphics2D g2){
     for (int i=0; i<listaExplosiones.size(); i++){
         Explosion e = listaExplosiones.get(i);
           e.setTiempoDeVida(e.getTiempoDeVida()-1);
+          e.sonidoExplosion.start();
           if(e.getTiempoDeVida()>25){
            g2.drawImage(e.imagenExp1, e.getX(), e.getY(), null);
           }else{
@@ -195,6 +214,7 @@ private void actualizaContadorTiempo(){
     }
 }
 
+
 private void bucleDelJuego() {
         //primero apunto al buffer
         Graphics2D g2 = (Graphics2D) buffer.getGraphics();
@@ -209,6 +229,9 @@ private void bucleDelJuego() {
         chequeaColision();
         pintaExplosion(g2);
         actualizaContadorTiempo();
+        if(gameOver){
+        temporizador.stop();
+        }
         /////////////////////////////////////////////////////
         //apunto al jPanel y dibujo el buffer sobre el jPanel
         g2 = (Graphics2D) jPanel1.getGraphics();
@@ -278,6 +301,8 @@ private void bucleDelJuego() {
            Disparo d = new Disparo();
            d.setX( miNave.getX()+ miNave.getAnchoNave()/2 - d.imagenDisparo.getWidth(null)/2);
            d.setY( miNave.getY());
+           d.sonidoDisparo.start();
+          
            
            //agrego el disparo a la lista de disparos
            listaDisparos.add(d);
